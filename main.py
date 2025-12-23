@@ -3,12 +3,15 @@ from typing import List
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
-load_dotenv()
 from langchain.agents import create_agent
 from langchain.tools import tool
 from langchain_core.messages import HumanMessage
-from langchain_openai import ChatOpenAI
 from langchain_tavily import TavilySearch
+from langchain_google_genai import ChatGoogleGenerativeAI
+import os
+
+
+load_dotenv(r"C:\Users\FelipeMuñozVargas\langchain-course_agents\.env")
 
 
 class Source(BaseModel):
@@ -26,9 +29,10 @@ class AgentResponse(BaseModel):
     )
 
 
-llm = ChatOpenAI(model="gpt-5")
+llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash-lite", temperature=0)
 tools = [TavilySearch()]
 agent = create_agent(model=llm, tools=tools, response_format=AgentResponse)
+
 
 
 def main():
