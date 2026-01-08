@@ -18,12 +18,12 @@ from schemas import AgentResponse
 
 tools = [TavilySearch()]
 llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash-lite", temperature=0)
-output_parser = PydanticOutputParser(pydantic_object=AgentResponse)
-
+#Para que se parsee la respuesta del agente solo al final de las iteraciones y no en cada paso, se crea un LLM estructurado con la clase AgentResponse  
+structuctured_llm=llm.with_structured_output(AgentResponse)
 react_prompt_with_format_instructions = PromptTemplate(
     template=REACT_PROMPT_WITH_FORMAT_INSTRUCTIONS,
     input_variables=["input", "agent_scratchpad", "tool_names"],
-).partial(format_instructions=output_parser.get_format_instructions())
+).partial(format_instructions="")
 
 
 agent = create_react_agent(
@@ -31,10 +31,13 @@ agent = create_react_agent(
     tools=tools,
     prompt=react_prompt_with_format_instructions,
 )
+#Crea el ejecutor del agente: Toma el agente React y le da acceso a las herramientas definidas, verbose : True para ver el proceso detalladamente
 agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
+#Crea un estractor que toma el resultado completo del agente y solo saca la parte de "output" 
 extract_output = RunnableLambda(lambda x: x["output"])
-parse_output = RunnableLambda(lambda x: output_parser.parse(x))
-chain = agent_executor | extract_output | parse_output
+#Parser: Convierte el texto de salida del agente en un objeto Pydantic definido en schemas.py llamado AgentResponse s
+#Primero se ejecuta el agente, luego se extrae la salida y finalmente se parsea a un objeto Pydantic
+chain = agent_executor | extract_output | structuctured_llm
 
 
 def main():
