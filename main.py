@@ -19,6 +19,7 @@ from schemas import AgentResponse
 tools = [TavilySearch()]
 llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash-lite", temperature=0)
 #Para que se parsee la respuesta del agente solo al final de las iteraciones y no en cada paso, se crea un LLM estructurado con la clase AgentResponse  
+#Usa la llamada a la función cuando está disponible , falling back to parsing when not
 structuctured_llm=llm.with_structured_output(AgentResponse)
 react_prompt_with_format_instructions = PromptTemplate(
     template=REACT_PROMPT_WITH_FORMAT_INSTRUCTIONS,
